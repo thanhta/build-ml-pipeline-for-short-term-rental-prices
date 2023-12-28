@@ -53,7 +53,18 @@ def go(config: DictConfig):
             ##################
             # Implement here #
             ##################
-            pass
+            _ = mlflow.run(
+                os.path.join(hydra.utils.get_original_cwd(), "src", "basic_cleaning"),
+                "main",
+                parameters={
+                    "input_artifact": "nyc_airbnb/sample.csv:latest", 
+                    "output_artifact_name": "cleaned_data.csv",
+                    "output_artifact_type": "cleaned_data",
+                    "output_artifact_description": "Cleaned data (e.g. outliers, null value removed)",
+                    "min_price": config['etl']['min_price'],
+                    "max_price": config['etl']['max_price']
+                },
+            )
 
         if "data_check" in active_steps:
             ##################
