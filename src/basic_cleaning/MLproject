@@ -22,11 +22,11 @@ entry_points:
         type: str
 
       min_price:
-        description: Minimum price for cleaning outliers
+        description: Minimum price to be considered
         type: float
 
       max_price:
-        description: Maximum price tfor cleaning outliers
+        description: Maximum price to be considered
         type: float
 
 

@@ -5,7 +5,7 @@ Performs basic cleaning on the data and save the results in Weights & Biases
 import argparse
 import logging
 import wandb
-
+import pandas as pd
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)-15s %(message)s")
 logger = logging.getLogger()
@@ -24,35 +24,31 @@ def go(args):
     # artifact_local_path = run.use_artifact(args.input_artifact).file()
 
     logger.info(f'Download input artifact {args.input_artifact}')
-    artifact_local_path = run.use_artifact(args.input_artifact).file()
-    df = pd.read_csv(artifact_local_path)
+    artifact_path = run.use_artifact(args.input_artifact).file()
+    df = pd.read_csv(artifact_path)
     
     # drop outliers
-    logger.info(f'Drop outliers regarding min {args.min_price}, max {args.max_price} price thresholds')
+    logger.info(f'Drop outliers and keep price within min price: {args.min_price} to max price {args.max_price}')
     min_price = args.min_price
     max_price = args.max_price
     idx = df['price'].between(min_price, max_price)
-    df_clean = df[idx].copy()
-    
-    # normal distribution of 'minimum_nights'
-    logger.info('Transform skewness of feature "minimum_nights" to normal distribution')
-    df_clean['minimum_nights'] = np.log(df_clean['minimum_nights'])
+    df = df[idx].copy()
     
     # convert 'last_review' to datetime
-    logger.info('Convert feature "last_review" to datetime type')
-    df_clean['last_review'] = pd.to_datetime(df_clean['last_review'])
+    logger.info('Convert "last_review" column to datetime type')
+    df['last_review'] = pd.to_datetime(df['last_review'])
     
-    # drop rows in the dataset that are not in the proper geolocation
-    logger.info('Drop rows in the dataset that are not in the proper geolocation')
-    idx = df_clean['longitude'].between(-74.25, -73.50) & df_clean['latitude'].between(40.5, 41.2)
-    df_clean = df_clean[idx].copy()
+    # Drop Outlier from longitude and latitude
+    logger.info('Drop outliers not in the proper longitude and latitude')
+    idx = df['longitude'].between(-74.25, -73.50) & df['latitude'].between(40.5, 41.2)
+    df = df[idx].copy()
     
-    # save cleaned dataframe
-    logger.info(f'Save cleaned dataframe to {args.output_artifact_name}')
-    df_clean.to_csv(args.output_artifact_name, index=False)
+    # save cleaned artifact
+    logger.info(f'Save cleaned artifact to {args.output_artifact_name}')
+    df.to_csv(args.output_artifact_name, index=False)
 
     # log artifact to Weights & Biases
-    logger.info(f'W&B logging artifact {args.output_artifact_name}') 
+    logger.info(f'Logging artifact {args.output_artifact_name} to W&B') 
     artifact = wandb.Artifact(
         name=args.output_artifact_name,
         type=args.output_artifact_type,
@@ -61,30 +57,52 @@ def go(args):
     artifact.add_file(args.output_artifact_name)
     run.log_artifact(artifact)
     
+    #os.remove(filename)
 
 if __name__ == "__main__":
 
-    parser = argparse.ArgumentParser(description="This steps cleans the data")
+    parser = argparse.ArgumentParser(description="This steps handles the data cleaning")
 
 
     parser.add_argument(
-        "--parameter1", 
-        type=## INSERT TYPE HERE: str, float or int,
-        help=## INSERT DESCRIPTION HERE,
+        "--input_artifact", 
+        type=str,
+        help="Name of the input artifact",
         required=True
     )
 
     parser.add_argument(
-        "--parameter2", 
-        type=## INSERT TYPE HERE: str, float or int,
-        help=## INSERT DESCRIPTION HERE,
+        "--output_artifact_name", 
+        type=str,
+        help="Name of the output artifact",
         required=True
     )
 
     parser.add_argument(
-        "--parameter3", 
-        type=## INSERT TYPE HERE: str, float or int,
-        help=## INSERT DESCRIPTION HERE,
+        "--output_artifact_type", 
+        type=str,
+        help="Data type of the output artifact",
+        required=True
+    )
+
+    parser.add_argument(    
+        "--output_artifact_description", 
+        type=str,
+        help="Description of the output artifact",
+        required=True
+    )
+
+    parser.add_argument(    
+        "--min_price", 
+        type=float,
+        help="Minimum price value to be considered",
+        required=True
+    )
+
+    parser.add_argument(    
+        "--max_price", 
+        type=float,
+        help="Maximum price value to be considered",
         required=True
     )
 

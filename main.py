@@ -16,7 +16,7 @@ _steps = [
     # NOTE: We do not include this in the steps so it is not run by mistake.
     # You first need to promote a model export to "prod" before you can run this,
     # then you need to run this step explicitly
-#    "test_regression_model"
+    # "test_regression_model"
 ]
 
 
@@ -57,10 +57,10 @@ def go(config: DictConfig):
                 os.path.join(hydra.utils.get_original_cwd(), "src", "basic_cleaning"),
                 "main",
                 parameters={
-                    "input_artifact": "nyc_airbnb/sample.csv:latest", 
-                    "output_artifact_name": "cleaned_data.csv",
-                    "output_artifact_type": "cleaned_data",
-                    "output_artifact_description": "Cleaned data (e.g. outliers, null value removed)",
+                    "input_artifact": "sample.csv:latest", 
+                    "output_artifact_name": "cleaned_sample.csv",
+                    "output_artifact_type": "cleaned_sample",
+                    "output_artifact_description": "Cleaned sample data (e.g. outliers and null value removed)",
                     "min_price": config['etl']['min_price'],
                     "max_price": config['etl']['max_price']
                 },
