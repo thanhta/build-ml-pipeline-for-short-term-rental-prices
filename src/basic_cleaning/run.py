@@ -37,7 +37,12 @@ def go(args):
     # convert 'last_review' to datetime
     logger.info('Convert "last_review" column to datetime type')
     df['last_review'] = pd.to_datetime(df['last_review'])
-       
+    
+    # Drop rows in the dataset that are not in the proper geolocation.
+    logger.info('Drop rows in the dataset that are not in the proper geolocation')
+    idx = df['longitude'].between(-74.25, -73.50) & df['latitude'].between(40.5, 41.2)
+    df = df[idx].copy()
+    
     # Dropping Duplicates
     logger.info('Dropping duplicate rows')
     df = df.drop_duplicates().reset_index(drop=True)
