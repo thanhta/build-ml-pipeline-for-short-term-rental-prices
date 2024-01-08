@@ -37,11 +37,10 @@ def go(args):
     # convert 'last_review' to datetime
     logger.info('Convert "last_review" column to datetime type')
     df['last_review'] = pd.to_datetime(df['last_review'])
-    
-    # Drop Outlier from longitude and latitude
-    logger.info('Drop outliers not in the proper longitude and latitude')
-    idx = df['longitude'].between(-74.25, -73.50) & df['latitude'].between(40.5, 41.2)
-    df = df[idx].copy()
+       
+    # Dropping Duplicates
+    logger.info('Dropping duplicate rows')
+    df = df.drop_duplicates().reset_index(drop=True)
     
     # save cleaned artifact
     logger.info(f'Save cleaned artifact to {args.output_artifact_name}')
@@ -55,9 +54,10 @@ def go(args):
         description=args.output_artifact_description,
     )
     artifact.add_file(args.output_artifact_name)
+
+    logger.info('Logging artifact')
     run.log_artifact(artifact)
-    
-    #os.remove(filename)
+
 
 if __name__ == "__main__":
 
