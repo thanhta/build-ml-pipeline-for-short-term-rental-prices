@@ -1,4 +1,4 @@
-name: test_regression_model
+name: mlflow-aca668dff4b4e454dd502d3d803604a064e08173
 channels:
   - conda-forge
   - defaults
